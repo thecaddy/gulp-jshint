@@ -48,4 +48,3 @@ module.exports = function check(file, cb) {
     return cb(null, ignored);
   });
 };
-
