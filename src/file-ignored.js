@@ -1,6 +1,8 @@
 var fs = require('fs');
-var minimatch = require('minimatch');
+var memoize = require('lodash.memoize');
+var Minimatch = require('minimatch').Minimatch;
 var resolve = require('path').resolve;
+var relative = require('path').relative;
 var RcLoader = require('rcloader');
 
 var ignoreLoader = new RcLoader('.jshintignore', {}, {
@@ -18,23 +20,20 @@ var ignoreLoader = new RcLoader('.jshintignore', {}, {
   }
 });
 
+var getMinimatch = memoize(function (pattern) {
+  return new Minimatch(pattern, { nocase: true });
+});
+
 module.exports = function check(file, cb) {
   ignoreLoader.for(file.path, function (err, cfg) {
     var ignored = false;
 
     if (Array.isArray(cfg.patterns)) {
       ignored = cfg.patterns.some(function (pattern) {
+        var mm = getMinimatch(pattern);
 
-        if (minimatch(resolve(file.path), pattern, { nocase: true })) {
-            return true;
-        }
-
-        if (file.path === resolve(pattern)) {
-            return true;
-        }
-
-        return (fs.existsSync(file.path) && fs.lstatSync(file.path).isDirectory() &&
-          pattern.match(/^[^\/]*\/?$/) && file.path.match(new RegExp("^" + pattern + ".*")));
+        if (resolvedPath === pattern) return true;
+        if (mm.match(resolvedPath)) return true;
       });
     }
 
