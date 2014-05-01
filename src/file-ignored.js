@@ -5,6 +5,8 @@ var resolve = require('path').resolve;
 var relative = require('path').relative;
 var RcLoader = require('rcloader');
 
+var noSlashesRE = /^[^\/]*\/?$/;
+
 var ignoreLoader = new RcLoader('.jshintignore', {}, {
   loader: function (path, done) {
     // .jshintignore is a line-delimited list of patterns
@@ -30,10 +32,16 @@ module.exports = function check(file, cb) {
 
     if (Array.isArray(cfg.patterns)) {
       ignored = cfg.patterns.some(function (pattern) {
+        var resolvedPath = resolve(file.path);
         var mm = getMinimatch(pattern);
 
         if (resolvedPath === pattern) return true;
         if (mm.match(resolvedPath)) return true;
+
+        if (noSlashesRE.test(pattern)) {
+          var relPath = relative(pattern, file.base);
+          if (relPath.substring(0, 2) !== '..') return true;
+        }
       });
     }
 

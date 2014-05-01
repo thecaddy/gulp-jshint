@@ -204,5 +204,53 @@ describe('gulp-jshint', function() {
       stream.end();
     });
 
+    it('should ignore based on simple directoy name', function(done) {
+      var a = 0;
+
+      var fakeFile = new gutil.File({
+        path: './ignoredir/vendor.js',
+        cwd: './',
+        base: './ignoredir/',
+        contents: new Buffer('wadup = 123;')
+      });
+
+      var stream = jshint(path.join(__dirname, './samplejshint'));
+      stream.on('data', function (newFile) {
+        ++a;
+        should.not.exist(newFile.jshint);
+      });
+      stream.once('end', function () {
+        a.should.equal(1);
+        done();
+      });
+
+      stream.write(fakeFile);
+      stream.end();
+    });
+
+    it('should ignore based on simple directoy name with trailing slash', function(done) {
+      var a = 0;
+
+      var fakeFile = new gutil.File({
+        path: './ignoredir-with-slash/vendor.js',
+        cwd: './',
+        base: './ignoredir-with-slash/',
+        contents: new Buffer('wadup = 123;')
+      });
+
+      var stream = jshint(path.join(__dirname, './samplejshint'));
+      stream.on('data', function (newFile) {
+        ++a;
+        should.not.exist(newFile.jshint);
+      });
+      stream.once('end', function () {
+        a.should.equal(1);
+        done();
+      });
+
+      stream.write(fakeFile);
+      stream.end();
+    });
+
   });
 });
